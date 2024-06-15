@@ -1,0 +1,60 @@
+;;
+;; Domain:     hkpnve.net.
+;; Exported:   2024-06-15 01:26:10
+;;
+;; This file is intended for use for informational and archival
+;; purposes ONLY and MUST be edited before use on a production
+;; DNS server.  In particular, you must:
+;;   -- update the SOA record with the correct authoritative name server
+;;   -- update the SOA record with the contact e-mail address information
+;;   -- update the NS record(s) with the authoritative name servers for this domain.
+;;
+;; For further information, please consult the BIND documentation
+;; located on the following website:
+;;
+;; http://www.isc.org/
+;;
+;; And RFC 1035:
+;;
+;; http://www.ietf.org/rfc/rfc1035.txt
+;;
+;; Please note that we do NOT offer technical support for any use
+;; of this zone data, the BIND name server, or any other third-party
+;; DNS software.
+;;
+;; Use at your own risk.
+;; SOA Record
+hkpnve.net	3600	IN	SOA	nadia.ns.cloudflare.com. dns.cloudflare.com. 2047008137 10000 2400 604800 3600
+
+;; NS Records
+hkpnve.net.	86400	IN	NS	nadia.ns.cloudflare.com.
+hkpnve.net.	86400	IN	NS	pablo.ns.cloudflare.com.
+
+;; A Records
+hkpnve.net.	1	IN	A	185.199.108.153
+hkpnve.net.	1	IN	A	185.199.109.153
+hkpnve.net.	1	IN	A	185.199.110.153
+hkpnve.net.	1	IN	A	185.199.111.153
+
+;; AAAA Records
+hkpnve.net.	1	IN	AAAA	2606:50c0:8000::153
+hkpnve.net.	1	IN	AAAA	2606:50c0:8001::153
+hkpnve.net.	1	IN	AAAA	2606:50c0:8002::153
+hkpnve.net.	1	IN	AAAA	2606:50c0:8003::153
+
+;; CNAME Records
+www.hkpnve.net.	1	IN	CNAME	hkpnve.net.
+
+;; MX Records
+hkpnve.net.	3600	IN	MX	10 alt4.aspmx.l.google.com.
+hkpnve.net.	3600	IN	MX	5 alt1.aspmx.l.google.com.
+hkpnve.net.	3600	IN	MX	5 alt2.aspmx.l.google.com.
+hkpnve.net.	3600	IN	MX	10 alt3.aspmx.l.google.com.
+hkpnve.net.	3600	IN	MX	1 aspmx.l.google.com.
+
+;; TXT Records
+_github-pages-challenge-hkpnve.hkpnve.net.	1	IN	TXT	"7c634459300b8ca0590e34ab1fdb6c"
+hkpnve.net.	3600	IN	TXT	"v=spf1 include:spf.efwd.registrar-servers.com include:_spf.google.com ~all"
+hkpnve.net.	3600	IN	TXT	"google-site-verification=WI25XZh3GAoiVRhvsQJR_Xg2TW6NUUkmPFyh7yFgfv0"
+
+;; DO NOT EDIT ANY LINES ABOVE
