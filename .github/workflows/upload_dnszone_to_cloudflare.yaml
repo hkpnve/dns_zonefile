@@ -90,6 +90,8 @@ jobs:
               return records
           
           def main():
+              import sys
+              
               client = Cloudflare(
                   api_email=os.environ.get('CF_API_EMAIL'),
                   api_key=os.environ.get('CF_API_KEY')
@@ -97,6 +99,9 @@ jobs:
               zone_id = os.environ['ZONE_ID']
               
               print(f"Zone ID: {zone_id}")
+              
+              # Track errors for final reporting
+              errors = []
               
               # Get existing records
               existing_records = client.dns.records.list(zone_id=zone_id)
@@ -131,7 +136,9 @@ jobs:
                           if "81058" in error_str:
                               print(f"✓ {record['type']} record for {record['name']} already up to date")
                           else:
+                              error_msg = f"Failed to update {record['type']} record for {record['name']}: {e}"
                               print(f"Error updating {record['type']} record for {record['name']}: {e}")
+                              errors.append(error_msg)
                   else:
                       # Create new record
                       try:
@@ -142,7 +149,9 @@ jobs:
                           if "81058" in error_str:
                               print(f"✓ {record['type']} record for {record['name']} already exists")
                           else:
+                              error_msg = f"Failed to create {record['type']} record for {record['name']}: {e}"
                               print(f"Error creating {record['type']} record for {record['name']}: {e}")
+                              errors.append(error_msg)
               
               # Delete records that exist in Cloudflare but not in zone file
               manageable_types = {'A', 'AAAA', 'CNAME', 'MX', 'TXT'}
@@ -160,6 +169,20 @@ jobs:
                       client.dns.records.delete(dns_record_id=record_id, zone_id=zone_id)
                       print(f"🗑️  Deleted {cf_type} record for {cf_name}")
                   except Exception as e:
+                      error_msg = f"Failed to delete {cf_type} record for {cf_name}: {e}"
                       print(f"Error deleting {cf_type} record for {cf_name}: {e}")
+                      errors.append(error_msg)
+              
+              # Report final status
+              if errors:
+                  print(f"\n❌ DNS sync completed with {len(errors)} error(s):")
+                  for i, error in enumerate(errors, 1):
+                      print(f"  {i}. {error}")
+                      # Use GitHub Actions error annotation
+                      print(f"::error::{error}")
+                  print(f"\n::error::DNS sync failed with {len(errors)} error(s)")
+                  sys.exit(1)  # Fail the workflow
+              else:
+                  print(f"\n✅ DNS sync completed successfully!")
           
           main()
