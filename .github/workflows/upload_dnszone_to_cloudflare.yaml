@@ -1,0 +1,126 @@
+name: Upload DNS Zone to Cloudflare
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'hkpnve.net.txt'
+  workflow_dispatch:
+
+jobs:
+  upload-zone:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          pip install cloudflare
+
+      - name: Upload zone file to Cloudflare
+        env:
+          CF_API_EMAIL: ${{ secrets.CF_API_EMAIL }}
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+        run: |
+          python - <<EOF
+          import CloudFlare
+          import re
+          
+          def parse_zone_file(filename):
+              records = []
+              current_type = None
+              with open(filename, 'r') as f:
+                  for line in f:
+                      line = line.strip()
+                      # Skip comments and empty lines
+                      if not line or line.startswith(';') or line.startswith('$'):
+                          if ";; A Records" in line:
+                              current_type = "A"
+                          elif ";; AAAA Records" in line:
+                              current_type = "AAAA"
+                          elif ";; CNAME Records" in line:
+                              current_type = "CNAME"
+                          elif ";; MX Records" in line:
+                              current_type = "MX"
+                          elif ";; TXT Records" in line:
+                              current_type = "TXT"
+                          continue
+                      
+                      # Skip SOA and NS records as they are managed by Cloudflare
+                      if "SOA" in line or "NS" in line:
+                          continue
+                      
+                      parts = line.split()
+                      if len(parts) < 5:  # Basic validation
+                          continue
+                          
+                      record_type = parts[3]
+                      if record_type not in ['A', 'AAAA', 'CNAME', 'MX', 'TXT']:
+                          continue
+                          
+                      name = parts[0].replace('hkpnve.net.', '')  # Remove domain
+                      name = name if name else '@'  # Root domain
+                      ttl = int(parts[1])
+                      content = parts[4]
+                      
+                      # Handle special cases
+                      if record_type == 'MX':
+                          priority = int(parts[4])
+                          content = parts[5].rstrip('.')
+                      elif record_type == 'TXT':
+                          content = ' '.join(parts[4:]).strip('"')
+                      else:
+                          content = content.rstrip('.')
+                          
+                      record = {
+                          'name': name,
+                          'type': record_type,
+                          'content': content,
+                          'ttl': ttl,
+                      }
+                      
+                      if record_type == 'MX':
+                          record['priority'] = priority
+                          
+                      records.append(record)
+              return records
+          
+          def main():
+              cf = CloudFlare.CloudFlare(token=None)  # Will use env vars
+              zone_id = os.environ['ZONE_ID']
+              
+              # Get existing records
+              existing_records = cf.zones.dns_records.get(zone_id)
+              existing_map = {(r['name'], r['type']): r['id'] for r in existing_records}
+              
+              # Parse zone file
+              new_records = parse_zone_file('hkpnve.net.txt')
+              
+              # Update/create records
+              for record in new_records:
+                  full_name = f"{record['name']}.hkpnve.net"
+                  if record['name'] == '@':
+                      full_name = "hkpnve.net"
+                  
+                  key = (full_name, record['type'])
+                  if key in existing_map:
+                      # Update existing record
+                      record_id = existing_map[key]
+                      try:
+                          cf.zones.dns_records.put(zone_id, record_id, data=record)
+                          print(f"Updated {record['type']} record for {record['name']}")
+                      except Exception as e:
+                          print(f"Error updating {record['type']} record for {record['name']}: {e}")
+                  else:
+                      # Create new record
+                      try:
+                          cf.zones.dns_records.post(zone_id, data=record)
+                          print(f"Created {record['type']} record for {record['name']}")
+                      except Exception as e:
+                          print(f"Error creating {record['type']} record for {record['name']}: {e}")
+          
+          if __name__ == '__main__':
+              main()
+          EOF 
