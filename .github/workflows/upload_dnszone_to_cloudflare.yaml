@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - master
   workflow_dispatch:
 
 jobs:
@@ -23,9 +24,9 @@ jobs:
           ZONE_ID: ${{ secrets.CF_ZONE_ID }}
         run: |
           python - <<EOF
-          import cloudflare
           import os
           import re
+          from cloudflare import Cloudflare
           
           def parse_zone_file(filename):
               records = []
@@ -87,12 +88,15 @@ jobs:
               return records
           
           def main():
-              cf = cloudflare.Cloudflare()  # Will use env vars
+              client = Cloudflare(
+                  api_email=os.environ.get('CF_API_EMAIL'),
+                  api_key=os.environ.get('CF_API_KEY')
+              )
               zone_id = os.environ['ZONE_ID']
               
               # Get existing records
-              existing_records = cf.zones.dns_records.get(zone_id)
-              existing_map = {(r['name'], r['type']): r['id'] for r in existing_records}
+              existing_records = client.dns.records.list(zone_id=zone_id)
+              existing_map = {(r.name, r.type): r.id for r in existing_records}
               
               # Parse zone file
               new_records = parse_zone_file('hkpnve.net.txt')
@@ -108,14 +112,14 @@ jobs:
                       # Update existing record
                       record_id = existing_map[key]
                       try:
-                          cf.zones.dns_records.put(zone_id, record_id, data=record)
+                          client.dns.records.update(dns_record_id=record_id, zone_id=zone_id, **record)
                           print(f"Updated {record['type']} record for {record['name']}")
                       except Exception as e:
                           print(f"Error updating {record['type']} record for {record['name']}: {e}")
                   else:
                       # Create new record
                       try:
-                          cf.zones.dns_records.post(zone_id, data=record)
+                          client.dns.records.create(zone_id=zone_id, **record)
                           print(f"Created {record['type']} record for {record['name']}")
                       except Exception as e:
                           print(f"Error creating {record['type']} record for {record['name']}: {e}")
