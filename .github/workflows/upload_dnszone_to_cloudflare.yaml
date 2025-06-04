@@ -94,6 +94,8 @@ jobs:
               )
               zone_id = os.environ['ZONE_ID']
               
+              print(f"Zone ID: {zone_id}")
+              
               # Get existing records
               existing_records = client.dns.records.list(zone_id=zone_id)
               existing_map = {(r.name, r.type): r.id for r in existing_records}
@@ -124,6 +126,5 @@ jobs:
                       except Exception as e:
                           print(f"Error creating {record['type']} record for {record['name']}: {e}")
           
-          if __name__ == '__main__':
-              main()
+          main()
           EOF 
