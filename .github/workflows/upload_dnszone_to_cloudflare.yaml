@@ -23,7 +23,8 @@ jobs:
           ZONE_ID: ${{ secrets.CF_ZONE_ID }}
         run: |
           python - <<EOF
-          import CloudFlare
+          import cloudflare
+          import os
           import re
           
           def parse_zone_file(filename):
@@ -86,7 +87,7 @@ jobs:
               return records
           
           def main():
-              cf = CloudFlare.CloudFlare(token=None)  # Will use env vars
+              cf = cloudflare.CloudFlare()  # Will use env vars
               zone_id = os.environ['ZONE_ID']
               
               # Get existing records
