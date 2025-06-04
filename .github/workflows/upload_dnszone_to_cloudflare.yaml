@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'hkpnve.net.txt'
   workflow_dispatch:
 
 jobs:
