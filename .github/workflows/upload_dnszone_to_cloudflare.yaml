@@ -105,6 +105,14 @@ jobs:
               # Parse zone file
               new_records = parse_zone_file('hkpnve.net.txt')
               
+              # Create a set of desired records for comparison
+              desired_records = set()
+              for record in new_records:
+                  full_name = f"{record['name']}.hkpnve.net"
+                  if record['name'] == '@':
+                      full_name = "hkpnve.net"
+                  desired_records.add((full_name, record['type']))
+              
               # Update/create records
               for record in new_records:
                   full_name = f"{record['name']}.hkpnve.net"
@@ -135,5 +143,23 @@ jobs:
                               print(f"✓ {record['type']} record for {record['name']} already exists")
                           else:
                               print(f"Error creating {record['type']} record for {record['name']}: {e}")
+              
+              # Delete records that exist in Cloudflare but not in zone file
+              manageable_types = {'A', 'AAAA', 'CNAME', 'MX', 'TXT'}
+              for (cf_name, cf_type), record_id in existing_map.items():
+                  # Skip records that are not manageable by this script
+                  if cf_type not in manageable_types:
+                      continue
+                  
+                  # Skip records that should exist according to zone file
+                  if (cf_name, cf_type) in desired_records:
+                      continue
+                  
+                  # Delete the record
+                  try:
+                      client.dns.records.delete(dns_record_id=record_id, zone_id=zone_id)
+                      print(f"🗑️  Deleted {cf_type} record for {cf_name}")
+                  except Exception as e:
+                      print(f"Error deleting {cf_type} record for {cf_name}: {e}")
           
           main()

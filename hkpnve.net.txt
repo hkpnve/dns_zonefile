@@ -44,7 +44,6 @@ hkpnve.net.	1	IN	AAAA	2606:50c0:8003::153
 
 ;; CNAME Records
 www.hkpnve.net.	1	IN	CNAME	hkpnve.net.
-pokebeeacon.hkpnve.net.	1	IN	CNAME	pokebeacon.com.
 
 ;; MX Records
 hkpnve.net.	3600	IN	MX	10 alt4.aspmx.l.google.com.
