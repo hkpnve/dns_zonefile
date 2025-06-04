@@ -98,8 +98,6 @@ jobs:
               )
               zone_id = os.environ['ZONE_ID']
               
-              print(f"Zone ID: {zone_id}")
-              
               # Track errors for final reporting
               errors = []
               
