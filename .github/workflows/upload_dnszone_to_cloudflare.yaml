@@ -87,7 +87,7 @@ jobs:
               return records
           
           def main():
-              cf = cloudflare.CloudFlare()  # Will use env vars
+              cf = cloudflare.Cloudflare()  # Will use env vars
               zone_id = os.environ['ZONE_ID']
               
               # Get existing records
