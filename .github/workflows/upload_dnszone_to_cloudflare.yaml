@@ -10,6 +10,7 @@ on:
 jobs:
   upload-zone:
     runs-on: ubuntu-latest
+    environment: cf zonefile
     steps:
       - uses: actions/checkout@v4
 
