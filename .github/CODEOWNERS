@@ -1,5 +1,5 @@
 # Protect GitHub Actions workflows - only the repository owner can approve changes
-/.github/workflows/ @your-github-username
+/.github/workflows/ @hkpnve-user
 
 # Optional: Also protect the CODEOWNERS file itself
-/.github/CODEOWNERS @your-github-username 
+/.github/CODEOWNERS @hkpnve-user 
